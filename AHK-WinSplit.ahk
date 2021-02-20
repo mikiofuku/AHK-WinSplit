@@ -370,6 +370,7 @@ class Window
 	}
 
 	; 指定したハンドルのウィンドウのボーダーを取得し設定する
+	; https://www.webtech.co.jp/blog/os/win10/8445/
 	GetWindowBorderOffset(id)
 	{
 		; ウィンドウのサイズを取得
@@ -383,7 +384,7 @@ class Window
     	wBottom  :=NumGet(WinRECT,12,"Int")
 		wWidth := wRight - wLeft
 		wHeight := wBottom - wTop
-		OutputDebug, % "    Window pos : " wLeft " , " wTop  " , " wRight " , " wBottom " : " wWidth " x " wHeight
+		OutputDebug, % "    Window pos         : " wLeft " , " wTop  " , " wRight " , " wBottom " : " wWidth " x " wHeight
 		
 		; ウィンドウのクライアント領域を取得
  		Static ClientRECT
@@ -398,12 +399,25 @@ class Window
 		cHeight := cBottom - cTop
 		OutputDebug, % "    Window Client size : " cLeft " , " cTop  " , " cRight " , " cBottom " : " cWidth " x " cHeight
 
-		; 領域の差 = ボーダーを計算する
-		bw := wWidth - cWidth
-		bh := wHeight - cHeight
-		OutputDebug % "    Window border : " bw " x " bh
+		; DWMウィンドウのクライアント領域を取得
+ 		Static DWMRECT
+		VarSetCapacity(DWMRECT,16,0)
+		PtrType:=(A_PtrSize=8) ? "Ptr":"UInt"
+		r := DllCall("Dwmapi.dll\DwmGetWindowAttribute",PtrType,id,"Uint",9,PtrType,&DWMRECT,"Uint", 16)
+		dLeft :=NumGet(DWMRECT,0,"Int")
+    	dTop  :=NumGet(DWMRECT,4,"Int")
+   	 	dRight   :=NumGet(DWMRECT,8,"Int")
+    	dBottom  :=NumGet(DWMRECT,12,"Int")
+		dWidth := dRight - dLeft
+		dHeight := dBottom - dTop
+		OutputDebug, % "    Window Client DWM  : " dLeft " , " dTop  " , " dRight " , " dBottom " : " dWidth " x " dHeight
 
-		return [bw, bh]
+		; 領域の差 = ボーダーを計算する
+		offsetw := wWidth - dWidth
+		offseth := wHeight - dHeight
+		OutputDebug % "    Window border : " offsetw " x " offseth
+
+		return [offsetw, offseth]
 	}
 
 	; -------------------------------
@@ -1607,8 +1621,3 @@ class WinCollection
 	} ; IsWindow
 
 } ; WinCollection
-
-ms := new Monitors()
-wc := new WinCollection(ms)
-ws := new WinSplit(ms, wc)
-ws.action := new INI().Read(ws)
