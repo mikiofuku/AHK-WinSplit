@@ -161,6 +161,8 @@ class Monitor
 
 class Monitors
 {	
+	; this.list : モニタ一覧を格納している. GetMonitorInfo()で。
+
 	; モニタ範囲を格納する
 	__New()
 	{
@@ -240,7 +242,7 @@ class Monitors
 		; （枠がモニタの外に出ていてこのモニタに入っていないと誤判別するので）		
 		; 枠分オフセットする。
 		x := aw.x + aw.offset_width
-		y := aw.y + aw.offset_width
+		y := aw.y + aw.offset_height
 
 		tmparea := 0
 		tmpindex := 0
@@ -262,13 +264,12 @@ class Monitors
 	}
 
 	; 指定したウィンドウがあるモニタの次のモニタを取得する
-	NextMonitor(aw)
+	NextMonitor(currentmonitor)
 	{
-		OutputDebug % "  --> NextMonitor no = " aw.title
+		OutputDebug % "  --> NextMonitor no = " currentmonitor.Debug()
 		
 		; アクティブウィンドウがあるモニタを取得→無ければ終了
-		am := this.Intersect(aw)
-		if(am = false)
+		if(currentmonitor = false)
 		{
 			OutputDebug, % "    --> no monitor"
 			return false
@@ -281,7 +282,7 @@ class Monitors
 		{
 			m := this.list[A_Index]
 			
-			if(m.no = am.no)
+			if(m.no = currentmonitor.no)
 			{
 				next := True
 				continue
@@ -302,7 +303,7 @@ class Monitors
 			m := this.list[i]
 			i--
 			
-			if(m.no = am.no)
+			if(m.no = currentmonitor.no)
 			{
 				next := True
 				continue
@@ -1220,7 +1221,7 @@ class WinSplit
 		aw := this.GetActiveWindow()
 		if(aw = false)
 		{
-			OutputDebug, % "    --> sno active window"
+			OutputDebug, % "    --> no active window"
 			return false
 		}
 		
@@ -1233,7 +1234,7 @@ class WinSplit
 		}
 		
 		; アクティブウィンドウがある次にモニタを取得→無ければ終了
-		targetmon := this.monitors.NextMonitor(aw)
+		targetmon := this.monitors.NextMonitor(currentmon)
 		if(targetmon = false)
 		{
 			OutputDebug, % "    --> no monitor"
@@ -1276,10 +1277,11 @@ class WinSplit
 	}
 
 	CursorMoveToNextMonitor()
-	{	
-		OutputDebug, % "--> CursorMoveToNextMonitor"
-		
+	{			
+		CoordMode,Mouse,Screen
 		MouseGetPos, mx, my
+		
+		OutputDebug, % "--> CursorMoveToNextMonitor : " mx " x " my
 		
 		; カーソルがあるモニタを取得→無ければ終了
 		currentmon := this.monitors.ContainsXY(mx, my)
@@ -1287,10 +1289,44 @@ class WinSplit
 		{
 			OutputDebug, % "    --> no monitor"
 			return false
+		}	
+
+		; アクティブウィンドウがある次にモニタを取得→無ければ終了
+		targetmon := this.monitors.NextMonitor(currentmon)
+		if(targetmon = false)
+		{
+			OutputDebug, % "    --> no monitor"
+			return false
 		}
 		
-		
+		OutputDebug, % currentmon.left " x " currentmon.top
 
+		; プライマリモニタ以外にウィンドウがある場合、座標がマイナスになっている場合がある。
+		; 座標がマイナスだと計算が面倒なので、ひとまずウィンドウのx,y座標を原点(0,0)にしてから
+		; 移動先座標の計算をして、移動直前に原点を移動先モニタの原点に戻すことにする。
+		; →currentmon.left * 1の処理がそうだ。
+		; 
+		; 現在のモニタでのカーソル座標位置をパーセンテージで取得する
+		; 中心ならpx = 0.5, py = 0.5、上から30%ならpy = 0.3等。
+		; 原点から30%のところにある、など。
+		cx := mx + (currentmon.left * -1)
+		cy := my + (currentmon.top * -1)
+		px := cx / currentmon.w
+		py := cy / currentmon.h
+
+		; 移動先モニタでのカーソル位置を計算する
+		; 現在のカーソル位置が現在のモニタの中央なら、移動先も中央に移動する。
+		tx := px * targetmon.w
+		ty := py * targetmon.h
+				
+		; モニタの原点を戻す
+		tx := tx + targetmon.left
+		ty := ty + targetmon.top
+
+		; カーソルを移動する
+		targetmon.Debug()
+		OutputDebug, % "    --> moveto " tx " x " ty
+		MouseMove tx, ty, 0
 	}
 
 }
