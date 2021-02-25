@@ -1,4 +1,4 @@
-; + Shift
+﻿; + Shift
 ; ^ Control
 ; ! Alt
 ; # Windows
@@ -8,13 +8,13 @@
 ; https://poimono.exblog.jp/19210175/
 ; http://eternalwindows.jp/winbase/window/window13.html
 ; https://odashi.hatenablog.com/entry/20110911/1315730376
-; https://riptutorial.com/ja/autohotkey/example/15621/�P���Ȕz��̍쐬�Ə�����
+; https://riptutorial.com/ja/autohotkey/example/15621/単純な配列の作成と初期化
 
 ; ToDo
 ;	Save windows position
-; 	Win10���z�f�X�N�g�b�v�ɑΉ�����
+; 	Win10仮想デスクトップに対応する
 ;		https://blog.tmyt.jp/entry/2015/09/14/193840
-;		�L�[���[�h : windows10 ���z�f�X�N�g�b�v �E�B���h�E�ʒu api
+;		キーワード : windows10 仮想デスクトップ ウィンドウ位置 api
 
 class Action
 {
@@ -23,7 +23,7 @@ class Action
 		this.name := name
 		this.count := 1
 		
-		; �V�[�P���X���i�[���郊�X�g�𐶐�
+		; シーケンスを格納するリストを生成
 		this.seq := Object()
 		return this
 	}
@@ -61,14 +61,14 @@ class Action
 
 	GetSequence()
 	{
-		; �V�[�P���X���擾����
+		; シーケンスを取得する
 		s := false
 		s := this.seq[this.count]
 		
-		; �g�O���ԍ����C���N�������g����
+		; トグル番号をインクリメントする
 		this.count := this.count + 1
 		
-		; �g�O���ԍ����i�[���Ă���seq�����傫���Ȃ�����1�ɖ߂�
+		; トグル番号が格納しているseqよりも大きくなったら1に戻す
 		if this.count > this.seq.length()
 		{
 			this.count := 1
@@ -98,7 +98,7 @@ class Sequence
 
 class Monitor
 {
-	; ���j�^�͈͂��i�[����
+	; モニタ範囲を格納する
 	__New(no,left,top,right,bottom)
 	{
 		this.no     := no
@@ -107,9 +107,9 @@ class Monitor
 		this.right  := right
 		this.bottom := bottom
 
-		; ���Ƌt�����v�Z
-		; �v���C�}���X�N���[���̍�����W�� 0,0��OS�S�̂̌��_�ɂȂ�B
-		; �Z�J���_���X�N���[�����v���C�}���X�N���[�������ɂ���ꍇ�A-1920,0,0,1024���ƂȂ�Bs
+		; 幅と逆さを計算
+		; プライマリスクリーンの左上座標が 0,0でOS全体の原点になる。
+		; セカンダリスクリーンがプライマリスクリーン左側にある場合、-1920,0,0,1024等となる。s
 		this.w := right - left
 		this.h := bottom - top
 
@@ -117,7 +117,7 @@ class Monitor
 		OutputDebug, % "      " left " x " top " x " right " x " Bottom " : width = " this.w ", height = " this.h
 	}
 	
-	; ���W�����̃��j�^�͈͓��ɂ��邩�ǂ���
+	; 座標がこのモニタ範囲内にあるかどうか
 	Contains(x, y)
 	{		
 		;OutputDebug % "   --> Contains(x,y) = " x " x " y " : This monitor size = " this.left " x " this.top  " x " this.right  " x " this.bottom
@@ -161,13 +161,13 @@ class Monitor
 
 class Monitors
 {	
-	; ���j�^�͈͂��i�[����
+	; モニタ範囲を格納する
 	__New()
 	{
-		; ���j�^���擾����
+		; モニタを取得する
 		this.GetMonitorInfo()
 		
-		; ���j�^�̉𑜓x���ς�����烂�j�^�����擾������
+		; モニタの解像度が変わったらモニタ情報を取得し直す
 		OnMessage(0x7E, ObjBindMethod(this, "WM_DISPLAYCHANGE"))
 	}
 	
@@ -179,15 +179,15 @@ class Monitors
 	
 	GetMonitorInfo()
 	{
-		; ���j�^�����擾
+		; モニタ数を取得
 		SysGet, count, MonitorCount
 
 		OutputDebug, % "     GetMonitorInfo count = " count
 
-		; ���j�^���i�[���郊�X�g�𐶐�
+		; モニタを格納するリストを生成
 		this.list := Object()
 				
-		; ���j�^�������[�v���񂵂āA���j�^�͈̓I�u�W�F�N�g�𐶐������X�g�Ɋi�[����
+		; モニタ数分ループを回して、モニタ範囲オブジェクトを生成しリストに格納する
 		Loop, % count
 		{
 			SysGet,workarea,MonitorWorkArea,% A_Index		
@@ -195,12 +195,12 @@ class Monitors
 		}
 	}
 	
-	; �w�肵���E�B���h�E���ǂ̃��j�^�ɓ����Ă��邩�H
+	; 指定したウィンドウがどのモニタに入っているか？
 	Contains(aw)
 	{		
-		; �E�B���h�E�g����ʊO�ɏo�Ă���ƁA���̃��j�^�ɓ����Ă���H�Ƃ������f���ԈႦ��̂�
-		; �i�g�����j�^�̊O�ɏo�Ă��Ă��̃��j�^�ɓ����Ă��Ȃ��ƌ딻�ʂ���̂Łj		
-		; �g���I�t�Z�b�g����B
+		; ウィンドウ枠が画面外に出ていると、このモニタに入っている？という判断が間違えるので
+		; （枠がモニタの外に出ていてこのモニタに入っていないと誤判別するので）		
+		; 枠分オフセットする。
 		x := aw.x + aw.offset_width
 		y := aw.y + aw.offset_width
 
@@ -217,7 +217,7 @@ class Monitors
 		return false
 	}
 	
-	; �w�肵�����W���ǂ̃��j�^�ɓ����Ă��邩�H
+	; 指定した座標がどのモニタに入っているか？
 	ContainsXY(x, y)
 	{
 		for index, m in this.list
@@ -233,12 +233,12 @@ class Monitors
 		return false
 	}
 	
-	; �w�肵�����W���ǂ̃��j�^�ɓ����Ă��邩�H
+	; 指定した座標がどのモニタに入っているか？
 	Intersect(aw)
 	{		
-		; �E�B���h�E�g����ʊO�ɏo�Ă���ƁA���̃��j�^�ɓ����Ă���H�Ƃ������f���ԈႦ��̂�
-		; �i�g�����j�^�̊O�ɏo�Ă��Ă��̃��j�^�ɓ����Ă��Ȃ��ƌ딻�ʂ���̂Łj		
-		; �g���I�t�Z�b�g����B
+		; ウィンドウ枠が画面外に出ていると、このモニタに入っている？という判断が間違えるので
+		; （枠がモニタの外に出ていてこのモニタに入っていないと誤判別するので）		
+		; 枠分オフセットする。
 		x := aw.x + aw.offset_width
 		y := aw.y + aw.offset_width
 
@@ -248,7 +248,7 @@ class Monitors
 		{
 			area := m.Intersect(x,y, aw.w, aw.h)
 
-			; �ő�l���X�V���A���̃C���f�b�N�X���X�V����B
+			; 最大値を更新しつつ、そのインデックスも更新する。
 			if(area > tmparea)
 			{
 				tmpindex := A_Index
@@ -261,12 +261,12 @@ class Monitors
 		return this.list[tmpindex]
 	}
 
-	; �w�肵���E�B���h�E�����郂�j�^�̎��̃��j�^���擾����
+	; 指定したウィンドウがあるモニタの次のモニタを取得する
 	NextMonitor(aw)
 	{
 		OutputDebug % "  --> NextMonitor no = " aw.title
 		
-		; �A�N�e�B�u�E�B���h�E�����郂�j�^���擾��������ΏI��
+		; アクティブウィンドウがあるモニタを取得→無ければ終了
 		am := this.Intersect(aw)
 		if(am = false)
 		{
@@ -274,7 +274,7 @@ class Monitors
 			return false
 		}
 						
-		; �ォ�珇�ԂɌ��Ă���
+		; 上から順番に見ていく
 		count := this.list.length()
 		next := False
 		Loop, % count
@@ -294,7 +294,7 @@ class Monitors
 			}
 		}
 
-		; �Ȃ���Ή����珇�ԂɌ��Ă���
+		; なければ下から順番に見ていく
 		i := count
 		next := False
 		Loop, % count
@@ -323,17 +323,17 @@ class Monitors
 class Window
 {
 	
-	; �w�肵���n���h����Window�I�u�W�F�N�g������ĕԂ�
+	; 指定したハンドルでWindowオブジェクトを作って返す
 	Make(id)
 	{		
-		; �A�N�e�B�u�ȃE�B���h�E�ƃ^�C�g���A�T�C�Y���擾
+		; アクティブなウィンドウとタイトル、サイズを取得
 		WinGetTitle, title, ahk_id %id%
 		WinGetPos, ax, ay, aw, ah, ahk_id %id%
 		
 		return new Window(id, title, ax, ay, aw, ah)
 	}
 
-	; �R���X�g���N�^
+	; コンストラクタ
 	__New(id, title, x, y, w, h)
 	{
 		OutputDebug, % "  --> Make Window"
@@ -344,22 +344,22 @@ class Window
 		this.w := w
 		this.h := h
 
-		; �E�B���h�E�̃p�X���擾����
+		; ウィンドウのパスを取得する
 		WinGet, path, ProcessPath, ahk_id %id%
 		this.path := path
 		
-		; �E�B���h�E�̃{�[�_�[�I�t�Z�b�g���擾����
+		; ウィンドウのボーダーオフセットを取得する
 		r := this.GetWindowBorderOffset(this.id)
 		this.offset_width := r[1]
 		this.offset_height := r[2]
 
-		; �R�}���h�v�����v�g�E�B���h�E�̏ꍇ�́A�T�C�Y��15�ɌŒ肷��B
+		; コマンドプロンプトウィンドウの場合は、サイズを15に固定する。
 		if(InStr(this.path, "cmd.exe", False))
 		{
 			this.offset_width := 15
 		}
 		
-		; �E�B���h�E��Ԃ��i�[���Ă���
+		; ウィンドウ状態を格納しておく
 		this.r := DllCall("GetWindowLongPtr", "Ptr", this.id, "Uint", -16) ; GWL_STYLE
 		this.exr := DllCall("GetWindowLongPtr", "Ptr", this.id, "Uint", -20) ; GWL_EXSTYLE
 		this.Zoomed := this.IsZoomed()
@@ -369,11 +369,11 @@ class Window
 		this.TopMost := this.IsTopMost()
 	}
 
-	; �w�肵���n���h���̃E�B���h�E�̃{�[�_�[���擾���ݒ肷��
+	; 指定したハンドルのウィンドウのボーダーを取得し設定する
 	; https://www.webtech.co.jp/blog/os/win10/8445/
 	GetWindowBorderOffset(id)
 	{
-		; �E�B���h�E�̃T�C�Y���擾
+		; ウィンドウのサイズを取得
  		Static WinRECT
 		VarSetCapacity(WinRECT,24,0)
 		PtrType:=(A_PtrSize=8) ? "Ptr":"UInt"
@@ -386,7 +386,7 @@ class Window
 		wHeight := wBottom - wTop
 		OutputDebug, % "    Window pos         : " wLeft " , " wTop  " , " wRight " , " wBottom " : " wWidth " x " wHeight
 		
-		; �E�B���h�E�̃N���C�A���g�̈���擾
+		; ウィンドウのクライアント領域を取得
  		Static ClientRECT
 		VarSetCapacity(ClientRECT,24,0)
 		PtrType:=(A_PtrSize=8) ? "Ptr":"UInt"
@@ -399,7 +399,7 @@ class Window
 		cHeight := cBottom - cTop
 		OutputDebug, % "    Window Client size : " cLeft " , " cTop  " , " cRight " , " cBottom " : " cWidth " x " cHeight
 
-		; DWM�E�B���h�E�̃N���C�A���g�̈���擾
+		; DWMウィンドウのクライアント領域を取得
  		Static DWMRECT
 		VarSetCapacity(DWMRECT,16,0)
 		PtrType:=(A_PtrSize=8) ? "Ptr":"UInt"
@@ -412,7 +412,7 @@ class Window
 		dHeight := dBottom - dTop
 		OutputDebug, % "    Window Client DWM  : " dLeft " , " dTop  " , " dRight " , " dBottom " : " dWidth " x " dHeight
 
-		; �̈�̍� = �{�[�_�[���v�Z����
+		; 領域の差 = ボーダーを計算する
 		offsetw := wWidth - dWidth
 		offseth := wHeight - dHeight
 		OutputDebug % "    Window border : " offsetw " x " offseth
@@ -422,45 +422,45 @@ class Window
 
 	; -------------------------------
 	;
-	; �E�B���h�E���擾���\�b�h
+	; ウィンドウ情報取得メソッド
 	;
 	; -------------------------------
 
-	; �ő剻���Ă��邩�ǂ����擾����
+	; 最大化しているかどうか取得する
 	IsZoomed()
 	{		
 		r := DllCall("IsZoomed", "UInt", this.id)
 		return r == 1 ? true : false
 	}
 	
-	; �ŏ������Ă��邩�ǂ����擾����
+	; 最小化しているかどうか取得する
 	IsIconic()
 	{		
 		r := DllCall("IsIconic", "UInt", this.id)
 		return r == 1 ? true : false
 	}
 	
-	; �����Ȃ����H�擾����
+	; 応答なしか？取得する
 	IsHungAppWindow()
 	{
 		r := DllCall("IsHungAppWindow", "UInt", this.id)
 		return r == 1 ? true : false
 	}
 
-	; �L���ȃE�B���h�E���H�擾����
+	; 有効なウィンドウか？取得する
 	IsWindowEnabled()
 	{
 		r := DllCall("IsWindowEnabled", "UInt", this.id)
 		return r == 1 ? true : false
 	}
 
-	; ��ɍőO�ʂ��H�擾����
+	; 常に最前面か？取得する
 	IsTopMost()
 	{		
-		; �A�N�e�B�u�E�B���h�E���őO�ʂ��ǂ������ׂ�
-		; GetWindowLong��GWL_EXSTYLE(�g���E�B���h�E�X�^�C��)�̖߂�l���A
+		; アクティブウィンドウが最前面かどうか調べる
+		; GetWindowLongのGWL_EXSTYLE(拡張ウィンドウスタイル)の戻り値が、
 		;   WS_EX_TOPMOST == 0x8
-		; ���܂܂�Ă�����őO��
+		; が含まれていたら最前面
 		id := this.id
 		WinGet,exstyle, ExStyle, ahk_id %id%
 		return exstyle & 0x8 == 0x8 ? true : false
@@ -468,11 +468,11 @@ class Window
 
 	; -------------------------------
 	;
-	; �E�B���h�E�ړ��Ȃǂ̃��\�b�h
+	; ウィンドウ移動などのメソッド
 	;
 	; -------------------------------
 
-	; �A�N�e�B�u�E�B���h�E���ő剻�������͍ŏ�������Ă������������	
+	; アクティブウィンドウが最大化もしくは最小化されていたら解除する	
 	Restore()
 	{				
 		r := this.IsZoomed()
@@ -496,7 +496,7 @@ class Window
 		}
 	}
 
-	; �E�B���h�E����ɑS��
+	; ウィンドウを常に全面
 	AlwaysOnTop(enable)
 	{
 		id := this.id
@@ -512,10 +512,10 @@ class Window
 		WinSet, Topmost, TOGGLE, ahk_id %id%
 	}
 
-	; �A�N�e�B�u�E�B���h�E�̍ő剻���ʏ���g�O������	
+	; アクティブウィンドウの最大化→通常をトグルする	
 	Toggle()
 	{		
-		; �A�N�e�B�u�E�B���h�E���ő剻����Ă������������		
+		; アクティブウィンドウが最大化されていたら解除する		
 		r := this.IsZoomed()
 		OutputDebug % "Window maximized : " r
 
@@ -539,45 +539,45 @@ class Window
 	{
 		processed := false
 
-		; ���X�A�ŏ�������Ă�����ŏ�������
+		; 元々、最小化されていたら最小化する
 		if(this.Iconic == 1)
 		{	
 			WinMinimize, % "ahk_id" this.id
 			processed := true
 		}
 
-		; ���X�A�ő剻����Ă�����ő剻����
+		; 元々、最大化されていたら最大化する
 		else if(this.Zoomed == 1)
 		{	
 			WinMaximize, % "ahk_id" this.id
 			processed := true
 		}
 
-		; ���X�A���ʂŁA�ŏ�������Ă����灨��������
+		; 元々、普通で、最小化されていたら→解除する
 		else if(this.Iconic == 0 && this.IsIconic() == 1)
 		{
 			this.Restore()
 			processed := true
 		}
 
-		; ���X�A���ʂŁA�ő剻����Ă����灨��������
+		; 元々、普通で、最大化されていたら→解除する
 		else if(this.Zoomed == 0 && this.IsZoomed() == 1)
 		{
 			this.Restore()	
 			processed := true
 		}
 		
-		; �őO�ʂȂ�őO�ʂɂ���
+		; 最前面なら最前面にする
 		if(this.TopMost == 1)
 		{
 			this.AlwaysOnTop(true)
 		}
 
-		; �S�ʂɈړ�����
+		; 全面に移動する
 		id := this.id
 		WinSet, Top,,ahk_id %id%
 
-		; �ړ�����
+		; 移動する
 		if(processed == false)
 		{
 			this.WinRestorePlus(this.id, this.x, this.y, this.w, this.h)
@@ -635,7 +635,7 @@ class WinSplit
 	
 	; -------------------------------
 	;
-	; WinSplit�N���X�����̃��\�b�h
+	; WinSplitクラス内部のメソッド
 	;
 	; -------------------------------
 
@@ -643,19 +643,19 @@ class WinSplit
 	{
 		OutputDebug, -------------------
 
-		; ���j�^�����i�[���郊�X�g��ݒ�
+		; モニタ情報を格納するリストを設定
 		this.monitors := monitors
 
-		; Windows Collection��ݒ�
+		; Windows Collectionを設定
 		this.wc := wincollection
 		
-		; �A�N�V�������i�[���郊�X�g�𐶐�
+		; アクションを格納するリストを生成
 		this.action := Object()
 
-		; �A���h�D�p�̃A�N�e�B�u�E�B���h�E���i�[���郊�X�g�𐶐�
+		; アンドゥ用のアクティブウィンドウを格納するリストを生成
 		this.undo := Object()
 
-		; �f�t�H���g�̃E�B���h�E�T�C�Y�ύX�T�C�Y��ݒ�
+		; デフォルトのウィンドウサイズ変更サイズを設定
 		this.WindowChangeSize := 30
 		
 		return this
@@ -671,7 +671,7 @@ class WinSplit
 	{
 		StringLower actname, actname
 
-		; ���s����A�N�V�������擾����
+		; 実行するアクションを取得する
 		action := false
 		for index, a in this.action
 		{
@@ -690,7 +690,7 @@ class WinSplit
 	{
 		OutputDebug, --> ClearActionCount
 
-		; ���s����A�N�V�������擾����
+		; 実行するアクションを取得する
 		for index, a in this.action
 		{
 			if(a.name != ignoreactionname)
@@ -702,17 +702,17 @@ class WinSplit
 
 	GetActiveWindow()
 	{		
-		; �A�N�e�B�u�ȃE�B���h�E�ƃ^�C�g���A�T�C�Y���擾
+		; アクティブなウィンドウとタイトル、サイズを取得
 		WinGet,id,ID,A
 		WinGetTitle, title, ahk_id %id%
 		WinGetPos, ax, ay, aw, ah, ahk_id %id%
 		
-		; �A�N�e�B�u�E�B���h�E�̃^�C�g�����󗓂́A�f�X�N�g�b�v��������Ȃ��̂ŉ������Ȃ�
+		; アクティブウィンドウのタイトルが空欄は、デスクトップかもしれないので何もしない
 		if(title =)
 			return false
 		if(title = "Program Manager")
 			return false
-		RegExMatch(title, " - �����[�g �f�X�N�g�b�v", $)
+		RegExMatch(title, " - リモート デスクトップ", $)
 		if($ !=)
 			return false
 
@@ -724,44 +724,44 @@ class WinSplit
 
 	; -------------------------------
 	;
-	; �E�B���h�E�ړ��Ȃǂ̃��\�b�h
+	; ウィンドウ移動などのメソッド
 	;
 	; -------------------------------
 
-	; �A�N�e�B�u�E�B���h�E���őO�ʂɂ���
+	; アクティブウィンドウを最前面にする
 	TopMostToggle()
 	{		
 		OutputDebug, --> TopMost
 		
-		; �A�N�e�B�u�ȃE�B���h�E���擾
+		; アクティブなウィンドウを取得
 		aw := this.GetActiveWindow()
 		if(aw = false)
 			return false
 
-		; �g�O������
+		; トグルする
 		aw.AlwaysOnTopToggle()
 	}
 	
-	; �ő剻���ʏ���g�O������
+	; 最大化→通常をトグルする
 	Toggle()
 	{
 		OutputDebug, --> Toggle
 
-		; �A�N�e�B�u�ȃE�B���h�E���擾
+		; アクティブなウィンドウを取得
 		aw := this.GetActiveWindow()
 		if(aw = false)
 			return false
 
-		; �E�B���h�E��Ԃ��g�O������
+		; ウィンドウ状態をトグルする
 		aw.Toggle()
 	}
 
-	; �A�N�e�B�u�E�B���h�E���ړ�����
+	; アクティブウィンドウを移動する
 	MoveTo(actname, fit)
 	{
 		OutputDebug, % "--> MoveTo : " actname ", fit = " fit
 
-		; �A�N�e�B�u�ȃE�B���h�E���擾
+		; アクティブなウィンドウを取得
 		aw := this.GetActiveWindow()
 		if(aw = false)
 		{
@@ -769,7 +769,7 @@ class WinSplit
 			return false
 		}
 		
-		; �A�N�e�B�u�E�B���h�E�����郂�j�^���擾��������ΏI��
+		; アクティブウィンドウがあるモニタを取得→無ければ終了
 		am := this.monitors.Intersect(aw)
 		if(am = false)
 		{
@@ -777,17 +777,17 @@ class WinSplit
 			return false
 		}
 			
-		; ���s����A�N�V�������擾���遨������ΏI��
+		; 実行するアクションを取得する→無ければ終了
 		action := this.GetAction(actname)
 		if(action = false)
 		{
 			OutputDebug, % "    --> no action"
 			return false
 		}
-		; ���̑��A�N�V�����̃V�[�P���X�ԍ������Z�b�g����
+		; その他アクションのシーケンス番号をリセットする
 		this.ClearActionCount(action.name)
 
-		; ���s����V�[�P���X���擾���遨������ΏI��
+		; 実行するシーケンスを取得する→無ければ終了
 		seq := action.GetSequence()
 		if(seq = false)
 		{
@@ -795,28 +795,28 @@ class WinSplit
 			return false
 		}
 		
-		; �ړ�����v�Z
+		; 移動先を計算
 		x := (am.w/100) * seq.x
 		y := (am.h/100) * seq.y
 		w := (am.w/100) * seq.w
 		h := (am.h/100) * seq.h
 		
-		; �E�B���h�E����������H
+		; ウィンドウをくっつける？
 		if(seq.IsVariable())
 		{
-			; IsVariable�̏ꍇ�A�ׂ̃E�B���h�E�ɂ�������
-			; WinCollection�ł�������Ώۂ̃E�B���h�E���擾����
-			; �܂�GetWindows��EnumWindows�őΏۂ̃E�B���h�E��S���擾����B
-			; ���ɁA��������E�B���h�E(�����̎��ɗ񋓂��ꂽ�E�B���h�E)���擾����B
-			; �擾���o������A����������W���v�Z����
+			; IsVariableの場合、隣のウィンドウにくっつける
+			; WinCollectionでくっつける対象のウィンドウを取得する
+			; まずGetWindowsでEnumWindowsで対象のウィンドウを全部取得する。
+			; 次に、くっつけるウィンドウ(自分の次に列挙されたウィンドウ)を取得する。
+			; 取得が出来たら、くっつける座標を計算する
 			this.wc.getwindows()
 			rw := this.wc.GetNextWindow(aw)
 
 			OutputDebug, % "   Reference window --> "
 			rw.Debug()	
 
-			; ���t�@�����X�E�B���h�E���Ȃ���΁A�I������			
-			;   ���ړ����Ȃ��ꍇ�́A���̃V�[�P���X�����s����
+			; リファレンスウィンドウがなければ、終了する			
+			;   →移動しない場合は、次のシーケンスを実行する
 			if(rw = )
 			{
 				OutputDebug, % "   Reference window none."
@@ -824,7 +824,7 @@ class WinSplit
 				return
 			}
 
-			; �E�B���h�E������������W���v�Z����
+			; ウィンドウをくっつける座標を計算する
 			if(action.IsRight())
 			{				
 				OutputDebug, % "   IsRight"
@@ -838,7 +838,7 @@ class WinSplit
 					w := am.w - x
 				}
 				
-				; Reference Window����ʂ����ς������������Ȃ�
+				; Reference Windowが画面いっぱいだ→何もしない
 				if(rw.x + rw.w >= am.right)
 					return
 			}
@@ -856,7 +856,7 @@ class WinSplit
 					w := rw.x + (rw.offset_width / 2)
 				}
 				
-				; Reference Window���[�ɂ������Ă��遨�������Ȃ�
+				; Reference Window左端にくっついている→何もしない
 				if(rw.x <= 0)
 					return 
 			}
@@ -875,7 +875,7 @@ class WinSplit
 					h := rw.y
 				}
 				
-				; Reference Window��ʏ�[�ɂ������Ă��遨�������Ȃ�
+				; Reference Window画面上端にくっついている→何もしない
 				if(rw.y <= 0)
 					return 
 			}
@@ -894,13 +894,13 @@ class WinSplit
 					h := am.h - rw.h
 				}
 				
-				; Reference Window��ʉ��[�ɂ������Ă��遨�������Ȃ�
+				; Reference Window画面下端にくっついている→何もしない
 				if(rw.h >= am.h)
 					return 
 			}		
 
-			; �����Ȃ��Ȃ�����ړ����Ȃ�
-			;   ���ړ����Ȃ��ꍇ�́A���̃V�[�P���X�����s����
+			; 幅がなくなったら移動しない
+			;   →移動しない場合は、次のシーケンスを実行する
 			if(w < 0 || y < 0)
 			{
 				OutputDebug, % "   no area. w = " w ", y = " y
@@ -909,22 +909,22 @@ class WinSplit
 			}
 		}
 		
-		; �E�B���h�E�̃{�[�_�[�I�t�Z�b�g�����Z����
+		; ウィンドウのボーダーオフセットを加算する
 		x := % x - (aw.offset_width / 2)
 		w := % w + aw.offset_width
 		h := % h + (aw.offset_width / 2)
 		
-		; ���j�^�̃I�t�Z�b�g�����Z����(�����̃��j�^�ɂ���̂����Z����)
+		; モニタのオフセットを加算する(何処のモニタにいるのか加算する)
 		x := x + am.left
 		y := y + am.top
 		
-		; �A�N�e�B�u�E�B���h�E��ۑ����Ă���
+		; アクティブウィンドウを保存しておく
 		this.undo.Insert(1, aw)
 
-		; �A�N�e�B�u�E�B���h�E���ő剻����Ă������������		
+		; アクティブウィンドウが最大化されていたら解除する		
 		aw.Restore()
 		
-		; �ړ�����		
+		; 移動する		
 		if(fit == true)
 		{
 			aw.WinRestorePlus(aw.id,x,y,w,h)
@@ -937,29 +937,29 @@ class WinSplit
 		return true
 	}
 	
-	; �A�N�e�B�u�E�B���h�E�̃T�C�Y��ύX����
+	; アクティブウィンドウのサイズを変更する
 	ChangeWindowSize(direction, IncreaseOrDecrese)
 	{
 		OutputDebug, % "--> ChangeWindowSize : "  direction " : " IncreaseOrDecrese ", pixel : " this.WindowChangeSize
 		pixel := this.WindowChangeSize
 
-		; �A�N�e�B�u�ȃE�B���h�E���擾
+		; アクティブなウィンドウを取得
 		aw := this.GetActiveWindow()
 		if(aw = false)
 			return false
 			
-		; �A�N�e�B�u�E�B���h�E�����郂�j�^���擾��������ΏI��
+		; アクティブウィンドウがあるモニタを取得→無ければ終了
 		am := this.monitors.Intersect(aw)
 		if(am = false)
 			return false
 		
-		; �A�N�e�B�u�E�B���h�E��ۑ����Ă���(���X�g�̍ŏ���)
+		; アクティブウィンドウを保存しておく(リストの最初に)
 		this.undo.Insert(1, aw)
 
-		; �A�N�e�B�u�E�B���h�E���ő剻����Ă������������		
+		; アクティブウィンドウが最大化されていたら解除する		
 		aw.Restore()
 
-		; �E�B���h�E�T�C�Y�ύX���l���v�Z����
+		; ウィンドウサイズ変更数値を計算する
 		offsetX := 0
 		offsetY := 0
 		offsetW := 0
@@ -967,9 +967,9 @@ class WinSplit
 		StringLower, direction, direction
 		StringLower, IncreaseOrDecrese, IncreaseOrDecrese
 		
-		; �v���C�}�����j�^�ȊO�ɃE�B���h�E������ꍇ�A���W���}�C�i�X�ɂȂ��Ă���ꍇ������B
-		; ���W���}�C�i�X���Ɖ�ʂ̂͂ݏo�����肪�ʓ|�Ȃ̂ŁA�ЂƂ܂��E�B���h�E��x,y���W�����_(0,0)�ɂ��Ă���
-		; �͂ݏo����������āA�ړ����O�Ɍ��_��߂����Ƃɂ���B
+		; プライマリモニタ以外にウィンドウがある場合、座標がマイナスになっている場合がある。
+		; 座標がマイナスだと画面のはみ出し判定が面倒なので、ひとまずウィンドウのx,y座標を原点(0,0)にしてから
+		; はみ出し判定をして、移動直前に原点を戻すことにする。
 		monitorOffsetX := am.left * -1
 		monitorOffsetY := am.top * -1
 		x := aw.x + monitorOffsetX
@@ -977,8 +977,8 @@ class WinSplit
 		w := aw.w
 		h := aw.h 
 		
-		; �E�B���h�E�����j�^����͂ݏo�����������ۂɁA�g�̃T�C�Y(�E�B���h�E�̈�ƃN���C�A���g�̍�)�������
-		; �v�Z���ʓ|�Ȃ̂ŁA�������񖳂����Ă��Ƃ��������
+		; ウィンドウがモニタからはみ出し判定をする際に、枠のサイズ(ウィンドウ領域とクライアントの差)があると
+		; 計算が面倒なので、いったん無くしてあとから加える
 		x := % x + (aw.offset_width / 2)
 		w := % w - aw.offset_width
 		h := % h - (aw.offset_width / 2)
@@ -1038,7 +1038,7 @@ class WinSplit
 				offsetH := +pixel+pixel
 			}
 			
-			; �ړ�����W�̌v�Z
+			; 移動先座標の計算
 			x := x + offsetX
 			y := y + offsetY
 			w := w + offsetW
@@ -1046,10 +1046,10 @@ class WinSplit
 			
 			OutputDebug, % "  size 1 = " x " x " y " x " w  " x " h
 
-			; ���j�^�O�ɏo�Ȃ��悤�ɕ␳����B
+			; モニタ外に出ないように補正する。
 			if(x < 0)
 			{				
-				; �͂ݏo�������v�Z���A�͂ݏo�����̕����L����
+				; はみ出た幅を計算し、はみ出た分の幅を広げる
 				ofw := Abs(x)
 				x := 0
 				w := % aw.w - (offsetX + ofw)
@@ -1059,7 +1059,7 @@ class WinSplit
 
 			if(y < 0)
 			{
-				; �͂ݏo���������v�Z���A�͂ݏo�����̍������L����
+				; はみ出た高さを計算し、はみ出た分の高さを広げる
 				ofh := Abs(y)
 				y := 0
 				h := % aw.h - (offsetY + ofh)
@@ -1132,13 +1132,13 @@ class WinSplit
 				offsetH := -pixel-pixel
 			}
 			
-			; �ړ�����W�̌v�Z
+			; 移動先座標の計算
 			x := x + offsetX
 			y := y + offsetY
 			w := w + offsetW
 			h := h + offsetH 
 
-			; �E�B���h�E���������Ȃ肷�������ɃE�B���h�E���ړ����Ȃ��悤�ɕ␳
+			; ウィンドウが小さくなりすぎた時にウィンドウが移動しないように補正
 			if(h < 10 or w < 120)
 			{
 				x := aw.x
@@ -1150,18 +1150,18 @@ class WinSplit
 
 		OutputDebug, % "  size 5 = " x " x " y " x " w  " x " h
 
-		; �E�B���h�E�̃{�[�_�[�I�t�Z�b�g�����Z����
+		; ウィンドウのボーダーオフセットを加算する
 		x := % x - (aw.offset_width / 2)
 		w := % w + aw.offset_width
 		h := % h + (aw.offset_width / 2)
 
-		; �}���`���j�^���̌��_��߂�
+		; マルチモニタ時の原点を戻す
 		x := x - monitorOffsetX
 		y := y - monitorOffsetY
 		
 		OutputDebug, % "  size 6 = " x " x " y " x " w  " x " h
 
-		; �T�C�Y�ύX����
+		; サイズ変更する
 		aw.WinRestorePlus(aw.id,x, y, w, h)
 	}
 	
@@ -1186,8 +1186,8 @@ class WinSplit
 		
 		if(key_ctrl == "D")
 		{		
-			this.MoveTo(direction, false)
-			;this.ChangeWindowSize(direction, "increase")
+			;this.MoveTo(direction, false)
+			this.ChangeWindowSize(direction, "increase")
 			return
 		}
 		
@@ -1199,16 +1199,16 @@ class WinSplit
 	{		
 		OutputDebug, % "Undo : " this.undo.length()
 
-		; �A���h�D���邱�Ƃ��Ȃ���΁��I��
+		; アンドゥすることがなければ→終了
 		if(this.undo.length() < 1)
 			return
 
-		; ��O�̃E�B���h�E���擾����
+		; 一つ前のウィンドウを取得する
 		aw := this.undo[1]
 		this.undo.Remove(1)
 		OutputDebug, % "Undo : " aw.id ", title : " aw.title
 
-		; �E�B���h�E�ʒu��߂�
+		; ウィンドウ位置を戻す
 		aw.WinRestorePlus()
 	}
 
@@ -1216,7 +1216,7 @@ class WinSplit
 	{	
 		OutputDebug, % "--> MoveToNextMonitor"
 
-		; �A�N�e�B�u�ȃE�B���h�E���擾
+		; アクティブなウィンドウを取得
 		aw := this.GetActiveWindow()
 		if(aw = false)
 		{
@@ -1224,7 +1224,7 @@ class WinSplit
 			return false
 		}
 		
-		; �A�N�e�B�u�E�B���h�E�����郂�j�^���擾��������ΏI��
+		; アクティブウィンドウがあるモニタを取得→無ければ終了
 		currentmon := this.monitors.Intersect(aw)
 		if(currentmon = false)
 		{
@@ -1232,7 +1232,7 @@ class WinSplit
 			return false
 		}
 		
-		; �A�N�e�B�u�E�B���h�E�����鎟�Ƀ��j�^���擾��������ΏI��
+		; アクティブウィンドウがある次にモニタを取得→無ければ終了
 		targetmon := this.monitors.NextMonitor(aw)
 		if(targetmon = false)
 		{
@@ -1240,9 +1240,9 @@ class WinSplit
 			return false
 		}
 				
-		; �v���C�}�����j�^�ȊO�ɃE�B���h�E������ꍇ�A���W���}�C�i�X�ɂȂ��Ă���ꍇ������B
-		; ���W���}�C�i�X���ƌv�Z���ʓ|�Ȃ̂ŁA�ЂƂ܂��E�B���h�E��x,y���W�����_(0,0)�ɂ��Ă���
-		; �ړ�����W�̌v�Z�����āA�ړ����O�Ɍ��_���ړ��惂�j�^�̌��_�ɖ߂����Ƃɂ���B
+		; プライマリモニタ以外にウィンドウがある場合、座標がマイナスになっている場合がある。
+		; 座標がマイナスだと計算が面倒なので、ひとまずウィンドウのx,y座標を原点(0,0)にしてから
+		; 移動先座標の計算をして、移動直前に原点を移動先モニタの原点に戻すことにする。
 		monitorOffsetX := currentmon.left * -1
 		monitorOffsetY := currentmon.top * -1
 		x := aw.x + monitorOffsetX
@@ -1250,8 +1250,8 @@ class WinSplit
 		w := aw.w
 		h := aw.h
 
-		; ���݂̃��j�^�ł̃E�B���h�E�̍��W�Ƒ傫���̃p�[�Z���e�[�W���擾����
-		; ���_����30%�̂Ƃ���ɂ���A���j�^��10%�����A�ȂǁB
+		; 現在のモニタでのウィンドウの座標と大きさのパーセンテージを取得する
+		; 原点から30%のところにあり、モニタの10%幅だ、など。
 		px := x / currentmon.w
 		py := y / currentmon.h
 		pw := w / currentmon.w
@@ -1259,7 +1259,7 @@ class WinSplit
 
 		;OutputDebug, % "px = " px ", py = " py ", pw = " pw ", ph = " ph
 		
-		; ���݂̊�������A�ړ��惂�j�^�̊������v�Z����
+		; 現在の割合から、移動先モニタの割合を計算する
 		x := targetmon.w * px
 		y := targetmon.h * py
 		w := targetmon.w * pw
@@ -1267,11 +1267,11 @@ class WinSplit
 		
 		;OutputDebug, % "x = " x ", y = " y ", w = " w ", h = " h
 
-		; ���j�^�̌��_���X�V
+		; モニタの原点を更新
 		x := x + targetmon.left
 		y := y + targetmon.top
 		
-		; �ړ�����B
+		; 移動する。
 		aw.WinRestorePlus(aw.id, x, y, w, h)
 	}
 
@@ -1281,7 +1281,7 @@ class WinSplit
 		
 		MouseGetPos, mx, my
 		
-		; �J�[�\�������郂�j�^���擾��������ΏI��
+		; カーソルがあるモニタを取得→無ければ終了
 		currentmon := this.monitors.ContainsXY(mx, my)
 		if(currentmon = false)
 		{
@@ -1303,61 +1303,61 @@ class INI
 		return this
 	}
 	
-	; INI�t�@�C����ǂݍ��݁AAction�N���X��Sequence�N���X�̃C���X�^���X�𐶐�����
-	; ��������Action�N���X�̔z���Ԃ�
+	; INIファイルを読み込み、ActionクラスやSequenceクラスのインスタンスを生成する
+	; 生成したActionクラスの配列を返す
 	Read(winsplit)
 	{
-		; INI�t�@�C���ǂݍ��݂̏���
+		; INIファイル読み込みの準備
 		OutputDebug, --> Read INI
 		OutputDebug, ScriptDir  : %A_ScriptDir%
 		SetWorkingDir, %A_ScriptDir%\AHK-WinSplit
 		OutputDebug, WorkingDir : %A_WorkingDir%
 
-		; ��Config�̓Ǎ�
+		; ■Configの読込
 		IniRead, inivalue, AHK-WinSplit.ini, Config, WindowChangeSize
 		if(inivalue != "ERROR")
 		{
 			winsplit.WindowChangeSize := inivalue
 		}
 
-		; ���A�N�V�����̓Ǎ�
-		; INI�t�@�C������ [Action-1]..., [Action-2]..., [Action-3]...
-		; �Ɠǂݍ��݃G���[������������(�Z�N�V����������������)��~����
+		; ■アクションの読込
+		; INIファイルから [Action-1]..., [Action-2]..., [Action-3]...
+		; と読み込みエラーが発生したら(セクションが無かったら)停止する
 
 		actions := []
 
 		Loop
 		{
-			; �Z�N�V�������𐶐����Z�N�V������ǂݍ���
+			; セクション名を生成しセクションを読み込む
 			secname = Action-%A_Index%			
 			IniRead, name, AHK-WinSplit.ini, %secname%, name
 
-			; �Z�N�V������������ΏI���
+			; セクションが無ければ終わり
 			if(name == "ERROR")
 				break
 
-			; �A�N�V�������͏������ɓ���
+			; アクション名は小文字に統一
 			StringLower, name, name
 			OutputDebug, --> Actionname = %name% 
 			
-			; �A�N�V�����𐶐�����
+			; アクションを生成する
 			act := new Action(name)
 			actions.Insert(act)
 
-			; �L�[(�V�[�P���X)���擾����
+			; キー(シーケンス)を取得する
 			Loop
 			{
-				; �L�[���𐶐����L�[��ǂݍ���
+				; キー名を生成しキーを読み込む
 				keyname = Seq%A_Index%
 				IniRead, val, AHK-WinSplit.ini, %secname%, %keyname% 
 				if(val = "ERROR")
 					break	
 				OutputDebug, %secname% %keyname% %val%
 
-				; ������𕪉�����
+				; 文字列を分解する
 				strs := StrSplit(val, ",")
 
-				; �V�[�P���X�𐶐�����
+				; シーケンスを生成する
 				seq := new Sequence(strs[1], strs[2], strs[3], strs[4])
 				act.Add(seq)
 			}	
@@ -1375,14 +1375,14 @@ class WinCollection
 {	
 	__New(monitors)
 	{		
-		; ���j�^�����i�[���郊�X�g��ݒ�
+		; モニタ情報を格納するリストを設定
 		this.monitors := monitors
 
-		; EnumWindowsCallBack���E�B���h�E�n���h�����ꎞ�I�Ɋi�[����z��
-		;   EnumWindows->EnumWindowsCallBack���i�[����
+		; EnumWindowsCallBackがウィンドウハンドルを一時的に格納する配列
+		;   EnumWindows->EnumWindowsCallBackが格納する
 		this.handle := Object()
 
-		; EnumWindows���󂯂�R�[���o�b�N��o�^����
+		; EnumWindowsを受けるコールバックを登録する
 		; https://www.autohotkey.com/boards/viewtopic.php?t=6849
 		if not this.EnumAddress
 			this.EnumAddress := RegisterCallback(this.EnumWindowsCallBack,"Fast",,&this)
@@ -1396,16 +1396,16 @@ class WinCollection
 	EnumWindowsCallBack(hwnd, lParam)
 	{		
 		; https://www.autohotkey.com/boards/viewtopic.php?t=6849
-		; ��LURL�̉���ł́Acallback��1�p�����[�^��this�œn���Ă���̂ŁAEventInfo��this�����Ă�����
-		; �����this�ɑ������炵���B
+		; 上記URLの解説では、callback第1パラメータがthisで渡ってくるので、EventInfoにthisを入れておいて
+		; それをthisに代入するらしい。
 		hwnd := this
 		this := object(a_eventinfo)
 
-		; �Ώۂ̃E�B���h�E��������wc�Ƀn���h�����i�[����
+		; 対象のウィンドウだったらwcにハンドルを格納する
 		if(this.IsWindow(hwnd) == true)
 			this.handle.Push(hwnd)
 		
-		; �R�[���o�b�N�𑱂���
+		; コールバックを続ける
 		return true
 	}
 
@@ -1413,22 +1413,22 @@ class WinCollection
 	{		
 		OutputDebug, % "--> GetNextWindow()"
 
-		; �E�B���h�E�����郂�j�^���擾
+		; ウィンドウがあるモニタを取得
 		currentMonitor := this.monitors.Intersect(w)
 
-		; id�̎��̃E�B���h�E��Ԃ�
+		; idの次のウィンドウを返す
 		found := false
 		Loop % this.wins.length()
 		{		
-			; Window�C���X�^���X���擾
+			; Windowインスタンスを取得
 			tw := this.wins[A_Index]
 
-			; �����Ă��郂�j�^���Ⴄ�ꍇ�̓X�L�b�v����
+			; 属しているモニタが違う場合はスキップする
 			tm := this.monitors.Intersect(tw)
 			if(tm != currentMonitor)
 				continue
 
-			; �t���O�������Ă�����A���̃E�B���h�E��Ԃ����ŏ�������Ă����炳��Ɏ��ɂ���B
+			; フラグが立っていたら、そのウィンドウを返すが最小化されていたらさらに次にする。
 			if(found == true)
 			{
 				if(tw.IsIconic())
@@ -1436,7 +1436,7 @@ class WinCollection
 				return tw
 			}
 			
-			; �����̃E�B���h�E����������t���O�𗧂ĂĎ��̃��[�v�̃E�B���h�E��Ԃ�
+			; 自分のウィンドウを見つけたらフラグを立てて次のループのウィンドウを返す
 			if(tw.id == w.id)
 			{
 				found := true
@@ -1449,54 +1449,54 @@ class WinCollection
 	{
 		OutputDebug, % "--> GetWindows()"
 		
-		; �擾�����E�B���h�E�n���h������E�B���h�E���𐶐����i�[����z��
-		; �n���h���擾��ȉ���Loop���Ŋi�[����
+		; 取得したウィンドウハンドルからウィンドウ情報を生成し格納する配列
+		; ハンドル取得後以下のLoop内で格納する
 		this.handle := Object()
 		this.wins := Object()
 		
-		; �E�B���h�E�n���h�����擾����
-		; �n���h���̎擾�́AEnumWindows->EnumWindowsProc->IsWindow���\�b�h�ōs����B
-		; 1. EnumWindows���Ă΂��B
-		; 2. EnumWindowsCallBack�R�[���o�b�N���Ă΂��B�n���h����this.handle�Ɋi�[���Ă����B
-		; 3. this.handle�Ɋi�[���I�������A�n���h������Window�C���X�^���X�𐶐����Athis.wins�Ɋi�[����B
-		; �Ƃ�������Ŋi�[����B
-		; GetWindows���\�b�h���Ă΂�邽�т� this.handle�Athis.wins�͏����������B
+		; ウィンドウハンドルを取得する
+		; ハンドルの取得は、EnumWindows->EnumWindowsProc->IsWindowメソッドで行われる。
+		; 1. EnumWindowsが呼ばれる。
+		; 2. EnumWindowsCallBackコールバックが呼ばれる。ハンドルをthis.handleに格納していく。
+		; 3. this.handleに格納が終わったら、ハンドルからWindowインスタンスを生成し、this.winsに格納する。
+		; という流れで格納する。
+		; GetWindowsメソッドが呼ばれるたびに this.handle、this.winsは初期化される。
 		DllCall("EnumWindows", Ptr, this.EnumAddress, Ptr, 0)
 		OutputDebug, % "  found windows : " this.handle.length()
 		
-		; �擾�����E�B���h�E�n���h������Window�C���X�^���X�𐶐�����
+		; 取得したウィンドウハンドルからWindowインスタンスを生成する
 		Loop % this.handle.length()
 		{		
-			; Window�C���X�^���X�𐶐�
+			; Windowインスタンスを生成
 			hwnd := this.handle[A_Index]
 			w := Window.Make(hwnd)
 			w.Debug()
 
-			; �z��Ɋi�[����
+			; 配列に格納する
 			this.wins.Push(w)
 		}
 
 		return this
 	}
 
-	; ���݂̃E�B���h�E����z��̎w�肵���C���f�b�N�X�Ɋi�[����
+	; 現在のウィンドウ情報を配列の指定したインデックスに格納する
 	SaveWindows(index)
 	{
 		OutputDebug, % "--> SaveWindows()"
 		
-		; �擾�����E�B���h�E�n���h������E�B���h�E���𐶐����i�[����z��
-		; �n���h���擾��ȉ���Loop���Ŋi�[����
+		; 取得したウィンドウハンドルからウィンドウ情報を生成し格納する配列
+		; ハンドル取得後以下のLoop内で格納する
 		this.win[index] := Object()
 		
-		; �E�B���h�E�n���h�����擾����
+		; ウィンドウハンドルを取得する
 		this.GetWindows()
 		
-		; �z��Ɋi�[����
+		; 配列に格納する
 		this.win[index] := this.wins
 
 		/*
-		�^�X�N�o�[����A�v���ꗗ���擾���鎎�݁B
-		�����Ɏ����BToolbarWindow32�̃n���h����0�B���ł��낤�H
+		タスクバーからアプリ一覧を取得する試み。
+		試しに実装。ToolbarWindow32のハンドルが0。何でだろう？
 		; http://hsp.tv/play/pforum.php?mode=pastwch&num=32771
 		OutputDebug, % " save windows = " . this.win[this.selectedindex].length()
 
@@ -1512,23 +1512,23 @@ class WinCollection
 		return this		
 	}
 
-	; �ۑ����Ă���E�B���h�E�z�u��߂�
+	; 保存してあるウィンドウ配置を戻す
 	LoadWindows(index)
 	{
 		OutputDebug, % "--> LoadWindows(), Wins = " this.win[this.selectedindex].length()
 
-		; �i�[�ԍ����i�[����
+		; 格納番号を格納する
 		this.selectedindex := index
 
-		; �i�[���Ă���E�B���h�E���𗘗p���ăE�B���h�E�ʒu��ݒ肷��
+		; 格納してあるウィンドウ情報を利用してウィンドウ位置を設定する
 		Loop % this.win[this.selectedindex].length()
 		{		
-			; ���X�g����Window�C���X�^���X���o���Ă���
-			; �o���Ƃ��̓��X�g�̍Ōォ�玝���Ă���B�������Ȃ���z�I�[�_�[���t�ɂȂ�A��̃E�B���h�E�����ɂȂ��Ă��܂��B
+			; リストからWindowインスタンスを出してくる
+			; 出すときはリストの最後から持ってくる。そうしないとzオーダーが逆になり、上のウィンドウが下になってしまう。
 			w := this.win[this.selectedindex][this.win[this.selectedindex].length() - A_Index + 1]
 			w.Debug()
 
-			; �E�B���h�E��z�u����
+			; ウィンドウを配置する
 			w.RestorePos()
 		}
 
@@ -1537,54 +1537,54 @@ class WinCollection
 
 	IsWindow(hwnd)
 	{
-		; �E�B���h�E��Ԃ��擾����
+		; ウィンドウ状態を取得する
 		r := DllCall("GetWindowLongPtr", "Ptr", hwnd, "Uint", -16) ; GWL_STYLE
 		exr := DllCall("GetWindowLongPtr", "Ptr", hwnd, "Uint", -20) ; GWL_EXSTYLE
 
 		;WinGetTitle, title, ahk_id %hwnd%
 		;OutputDebug, % title
 
-		; �E�B���h�E�X�^�C���ꗗ
+		; ウィンドウスタイル一覧
 		; https://sites.google.com/site/autohotkeyjp/reference/misc/Styles
 
-		; ����Ԃł͂Ȃ� : WS_VISIBLE = 0x10000000
+		; 可視状態ではない : WS_VISIBLE = 0x10000000
 		if(!(r & 0x10000000))
 			return false
 
-		; ����\�ł͂Ȃ� : WS_DISABLED = 0x08000000
+		; 操作可能ではない : WS_DISABLED = 0x08000000
 		if (r & 0x08000000)
 			return false
 
-		; �c�[���E�C���h�E�ł͂Ȃ� : WS_EX_TOOLWINDOW == 0x00000080			
+		; ツールウインドウではない : WS_EX_TOOLWINDOW == 0x00000080			
 		if (exr & 0x00000080)
 			return false
 		
-		; ���A����������0��
-		; ���f����UWP������(���f����UWP��x��y��-32000)
+		; 幅、高さが共に0だ
+		; 中断中のUWPを除く(中断中のUWPはxとyが-32000)
 		WinGetPos,x,y,w,h,ahk_id %hwnd%					
 		if(w == 0 && h == 0)
 			return false
 
 		; WS_EX_APPWINDOW = 0x00040000
-		; �����̃R�[�h��L���ɂ���Ɖ��̂�Visual Studio����Ώ̂ɂȂ��Ă��܂��̂Ŗ����ɂ���B
+		; ここのコードを有効にすると何故かVisual Studioが非対称になってしまうので無効にする。
 		;if(exr & 0x00040000)
 		;	return false
 		
-		; �e���Ȃ��E�B���h�E�����O		
+		; 親がないウィンドウを除外		
 		hParent = DllCall("GetParent", "Ptr", hwnd)
 		if(hParent == 0)
 			return false
 
-		; ��\���̐e�����AWS_POPUP�����̃E�C���h�E�����O����
+		; 非表示の親を持つ、WS_POPUP属性のウインドウを除外する
 		if(hParent != 0)
 		{
 			hParentr := DllCall("GetWindowLongPtr", "Ptr", hParent, "Uint", -16) ; GWL_STYLE
 			hParentexr := DllCall("GetWindowLongPtr", "Ptr", hParent, "Uint", -20) ; GWL_EXSTYLE
 			
-			; ����� : WS_VISIBLE = 0x10000000
+			; 可視状態 : WS_VISIBLE = 0x10000000
 			if ((hParentr & 0x10000000) == 0) 
 			{	
-				; ����\�ł��� : WS_DISABLED = 0x08000000
+				; 操作可能である : WS_DISABLED = 0x08000000
 				if ((hParentr & 0x08000000) == 0)
 				{		
 					; WS_POPUP = 0x80000000
@@ -1596,22 +1596,22 @@ class WinCollection
 			}
 		}
 		
-		; UWP�A�v��
-		; "Windows.UI.Core.CoreWindow"�Ƃ����q�E�B���h�E�������Ȃ��E�B���h�E�͏��O��������
-		; �ŏ������Ă���UWP�A�v���́A���̎q�E�B���h�E�������Ȃ��̂őΏۊO�ɂȂ��Ă��܂��B
+		; UWPアプリ
+		; "Windows.UI.Core.CoreWindow"という子ウィンドウを持たないウィンドウは除外したいが
+		; 最小化しているUWPアプリは、この子ウィンドウを持たないので対象外になってしまう。
 		; 
-		; Tascher�ł͐F�X���������Ă��邪�A�����ł͊ȗ�������UWP�ōŏ�������Ă�����ΏۂƂ���B
+		; Tascherでは色々処理をしているが、ここでは簡略化してUWPで最小化されていたら対象とする。
 		if(exr & 0x00200000)
 		{			
 			rFWE := DllCall("FindWindowEx", Ptr, hwnd, Ptr, 0, "str", "Windows.UI.Core.CoreWindow", Ptr, 0)
 			;OutputDebug, % "FindWindowEx = " . title . ", hChild = " . rFWE
 			if(rFWE == 0)
 			{
-				; �ŏ�������Ă���E�B���h�E�͑Ώۂɂ���
+				; 最小化されているウィンドウは対象にする
 				if(r & 0x20000000)
 					return true
 				
-				; ���̑��͑ΏۊO
+				; その他は対象外
 				return false
 			}
 		}
