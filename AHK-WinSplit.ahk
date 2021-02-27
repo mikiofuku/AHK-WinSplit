@@ -621,6 +621,14 @@ class Window
 		WinActivate, ahk_id %id%
 	}
 
+	CallCursor()
+	{
+		; マウスカーソルをウィンドウ中央に移動する
+		OutputDebug, % "--> CallCursor : " this.x " x " this.y
+		CoordMode,Mouse,Window
+		MouseMove, this.w / 2, this.h / 2, 0
+	}
+
 	Debug()
 	{		
 		SetFormat, integer, hex
@@ -1346,13 +1354,18 @@ class WinSplit
 
 		OutputDebug, % "  ActiveWindow : " aw.Title
 
+		; 次のウィンドウを取得
 		nw := this.wc.GetNextWindow(aw)
 		if(nw = false)
 			return False
 		OutputDebug, % "  Next  Window : " nw.Title
+
+		; 次のウィンドウをアクティブにする。
 		nw.Debug()
 		nw.Activate()
-		
+
+		; マウスカーソルをアクティブウィンドウの上に移動する
+		nw.callcursor()		
 	}
 
 }
