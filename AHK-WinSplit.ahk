@@ -615,6 +615,12 @@ class Window
 		Return DllCall("User32.dll\SetWindowPlacement", "Ptr", hwnd, "Ptr", &WP)
 	}
 
+	Activate()
+	{
+		id := this.id
+		WinActivate, ahk_id %id%
+	}
+
 	Debug()
 	{		
 		SetFormat, integer, hex
@@ -1329,6 +1335,26 @@ class WinSplit
 		MouseMove tx, ty, 0
 	}
 
+	ActiveNextWindow()
+	{		
+		OutputDebug, % "--> ActiveNextWindow()"
+
+		; アクティブなウィンドウを取得
+		aw := this.GetActiveWindow()
+		if(aw = false)
+			return False
+
+		OutputDebug, % "  ActiveWindow : " aw.Title
+
+		nw := this.wc.GetNextWindow(aw)
+		if(nw = false)
+			return False
+		OutputDebug, % "  Next  Window : " nw.Title
+		nw.Debug()
+		nw.Activate()
+		
+	}
+
 }
 
 class INI
@@ -1453,6 +1479,7 @@ class WinCollection
 		currentMonitor := this.monitors.Intersect(w)
 
 		; idの次のウィンドウを返す
+		this.GetWindows()
 		found := false
 		Loop % this.wins.length()
 		{		
