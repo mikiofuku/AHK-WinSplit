@@ -825,7 +825,7 @@ class WinSplit
 			; 次に、くっつけるウィンドウ(自分の次に列挙されたウィンドウ)を取得する。
 			; 取得が出来たら、くっつける座標を計算する
 			this.wc.getwindows()
-			rw := this.wc.GetNextWindow(aw)
+			rw := this.wc.GetNextWindow(aw, true)
 
 			OutputDebug, % "   Reference window --> "
 			rw.Debug()	
@@ -1354,8 +1354,8 @@ class WinSplit
 
 		OutputDebug, % "  ActiveWindow : " aw.Title
 
-		; 次のウィンドウを取得
-		nw := this.wc.GetNextWindow(aw)
+		; 次のウィンドウを取得 (同じモニタでなくてもよい)
+		nw := this.wc.GetNextWindow(aw, false)
 		if(nw = false)
 			return False
 		OutputDebug, % "  Next  Window : " nw.Title
@@ -1484,7 +1484,7 @@ class WinCollection
 		return true
 	}
 
-	GetNextWindow(w)
+	GetNextWindow(w, samemonitor)
 	{		
 		OutputDebug, % "--> GetNextWindow()"
 
@@ -1501,7 +1501,7 @@ class WinCollection
 
 			; 属しているモニタが違う場合はスキップする
 			tm := this.monitors.Intersect(tw)
-			if(tm != currentMonitor)
+			if(samemonitor == true && tm != currentMonitor)
 				continue
 
 			; フラグが立っていたら、そのウィンドウを返すが最小化されていたらさらに次にする。
