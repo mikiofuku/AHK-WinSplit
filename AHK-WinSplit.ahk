@@ -1380,16 +1380,24 @@ class INI
 	
 	; INIファイルを読み込み、ActionクラスやSequenceクラスのインスタンスを生成する
 	; 生成したActionクラスの配列を返す
-	Read(winsplit)
+	Read(winsplit,filename)
 	{
 		; INIファイル読み込みの準備
 		OutputDebug, --> Read INI
 		OutputDebug, ScriptDir  : %A_ScriptDir%
-		SetWorkingDir, %A_ScriptDir%\AHK-WinSplit
+		;SetWorkingDir, %A_ScriptDir%\AHK-WinSplit
 		OutputDebug, WorkingDir : %A_WorkingDir%
 
+		; 読み込むファイル名の設定
+		if(filename == "")
+		{
+			SetWorkingDir, %A_ScriptDir%
+			filename := "AHK-Winsplit.ini"
+		}		
+		OutputDebug, inifilename  : %filename%
+
 		; ■Configの読込
-		IniRead, inivalue, AHK-WinSplit.ini, Config, WindowChangeSize
+		IniRead, inivalue, %filename%, Config, WindowChangeSize
 		if(inivalue != "ERROR")
 		{
 			winsplit.WindowChangeSize := inivalue
@@ -1405,11 +1413,11 @@ class INI
 		{
 			; セクション名を生成しセクションを読み込む
 			secname = Action-%A_Index%			
-			IniRead, name, AHK-WinSplit.ini, %secname%, name
+			IniRead, name, %filename%, %secname%, name
 
 			; セクションが無ければ終わり
 			if(name == "ERROR")
-				break
+				Break
 
 			; アクション名は小文字に統一
 			StringLower, name, name
@@ -1424,7 +1432,7 @@ class INI
 			{
 				; キー名を生成しキーを読み込む
 				keyname = Seq%A_Index%
-				IniRead, val, AHK-WinSplit.ini, %secname%, %keyname% 
+				IniRead, val, %filename%, %secname%, %keyname% 
 				if(val = "ERROR")
 					break	
 				OutputDebug, %secname% %keyname% %val%
