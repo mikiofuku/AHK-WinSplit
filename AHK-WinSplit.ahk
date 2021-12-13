@@ -16,12 +16,12 @@
 ;		https://blog.tmyt.jp/entry/2015/09/14/193840
 ;		キーワード : windows10 仮想デスクトップ ウィンドウ位置 api
 
-#include %A_ScriptDir%\code\Action.ahk
-#include %A_ScriptDir%\code\Sequence.ahk
-#include %A_ScriptDir%\code\Monitor.ahk
-#include %A_ScriptDir%\code\Monitors.ahk
-#include %A_ScriptDir%\code\Window.ahk
-#include %A_ScriptDir%\code\WinCollection.ahk
-#include %A_ScriptDir%\code\INI.ahk
-#include %A_ScriptDir%\code\WinSplit.ahk
+#include %A_ScriptDir%\AHK-WinSplit\code\Action.ahk
+#include %A_ScriptDir%\AHK-WinSplit\code\Sequence.ahk
+#include %A_ScriptDir%\AHK-WinSplit\code\Monitor.ahk
+#include %A_ScriptDir%\AHK-WinSplit\code\Monitors.ahk
+#include %A_ScriptDir%\AHK-WinSplit\code\Window.ahk
+#include %A_ScriptDir%\AHK-WinSplit\code\WinCollection.ahk
+#include %A_ScriptDir%\AHK-WinSplit\code\INI.ahk
+#include %A_ScriptDir%\AHK-WinSplit\code\WinSplit.ahk
 

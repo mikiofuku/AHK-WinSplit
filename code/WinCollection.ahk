@@ -60,8 +60,12 @@ class WinCollection
 			; フラグが立っていたら、そのウィンドウを返すが最小化されていたらさらに次にする。
 			if(found == true)
 			{
+				; 最小化されてるウィンドウは飛ばす
 				if(tw.IsIconic())
 					continue
+
+				
+				
 				return tw
 			}
 			
@@ -91,7 +95,7 @@ class WinCollection
 		; という流れで格納する。
 		; GetWindowsメソッドが呼ばれるたびに this.handle、this.winsは初期化される。
 		DllCall("EnumWindows", Ptr, this.EnumAddress, Ptr, 0)
-		OutputDebug, % "  found windows : " this.handle.length()
+		;OutputDebug, % "  found windows : " this.handle.length()
 		
 		; 取得したウィンドウハンドルからWindowインスタンスを生成する
 		Loop % this.handle.length()
@@ -99,7 +103,8 @@ class WinCollection
 			; Windowインスタンスを生成
 			hwnd := this.handle[A_Index]
 			w := Window.Make(hwnd)
-			w.Debug()
+			;w.Debug()
+			OutputDebug, % "Title : "  w.title
 
 			; 配列に格納する
 			this.wins.Push(w)

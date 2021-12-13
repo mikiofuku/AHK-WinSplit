@@ -23,7 +23,7 @@
 		; モニタ数を取得
 		SysGet, count, MonitorCount
 
-		OutputDebug, % "     GetMonitorInfo count = " count
+		;OutputDebug, % "     GetMonitorInfo count = " count
 
 		; モニタを格納するリストを生成
 		this.list := Object()
@@ -50,7 +50,7 @@
 			r := m.Contains(x,y)
 			if(r == true)
 			{
-				OutputDebug, % "  on monitor no. = " m.no ", monitor size = " m.left " x " m.top " x " m.right " x " m.bottom 
+				;OutputDebug, % "  on monitor no. = " m.no ", monitor size = " m.left " x " m.top " x " m.right " x " m.bottom 
 				return m
 			}
 		}
@@ -66,7 +66,7 @@
 			r := m.Contains(x,y)
 			if(r == true)
 			{
-				OutputDebug, % "  on monitor no. = " m.no ", monitor size = " m.left " x " m.top " x " m.right " x " m.bottom 
+				;OutputDebug, % "  on monitor no. = " m.no ", monitor size = " m.left " x " m.top " x " m.right " x " m.bottom 
 				return m
 			}
 		}
@@ -97,7 +97,7 @@
 			}
 		}
 
-		OutputDebug, % "  on monitor no. = " tmpindex 
+		;OutputDebug, % "  on monitor no. = " tmpindex 
 		
 		return this.list[tmpindex]
 	}
@@ -105,7 +105,7 @@
 	; 指定したウィンドウがあるモニタの次のモニタを取得する
 	NextMonitor(currentmonitor)
 	{
-		OutputDebug % "  --> NextMonitor no = " currentmonitor.Debug()
+		;OutputDebug % "  --> NextMonitor no = " currentmonitor.Debug()
 		
 		; アクティブウィンドウがあるモニタを取得→無ければ終了
 		if(currentmonitor = false)
@@ -129,7 +129,7 @@
 
 			if(next = True)
 			{
-				OutputDebug % "    -> NextMonitor no = " A_Index
+				;OutputDebug % "    -> NextMonitor no = " A_Index
 				return m
 			}
 		}
@@ -150,7 +150,7 @@
 
 			if(next = True)
 			{
-				OutputDebug % "    -> NextMonitor no = " (i + 1)
+				;OutputDebug % "    -> NextMonitor no = " (i + 1)
 				return m
 			}
 		}

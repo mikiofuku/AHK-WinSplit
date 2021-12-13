@@ -16,8 +16,8 @@ class Monitor
 		this.w := right - left
 		this.h := bottom - top
 
-		OutputDebug, % "     --> Monitor = " no
-		OutputDebug, % "      " left " x " top " x " right " x " Bottom " : width = " this.w ", height = " this.h
+		;OutputDebug, % "     --> Monitor = " no
+		;OutputDebug, % "      " left " x " top " x " right " x " Bottom " : width = " this.w ", height = " this.h
 	}
 	
 	; 座標がこのモニタ範囲内にあるかどうか
@@ -43,13 +43,11 @@ class Monitor
 		sh := ey - sy
 		area := sw * sh
 
-		this.Debug()
-		OutputDebug, % "    " sx " x " sy " x " ex " x " ey
-		OutputDebug, % "    sw = " sw ", sh = " sh
+		;this.Debug()
 
 		if(sw > 0 && sh > 0)
 		{
-			OutputDebug, % "      on this monitor area : " area
+			;OutputDebug, % "      on this monitor area : " area
 		}
 		
 		return area
@@ -59,5 +57,7 @@ class Monitor
 	{		
 		OutputDebug, % "  --> Monitor = " this.no
 		OutputDebug, % "  " this.left " x " this.top " x " this.right " x " this.Bottom " : width = " this.w ", height = " this.h
+		OutputDebug, % "    " sx " x " sy " x " ex " x " ey
+		OutputDebug, % "    sw = " sw ", sh = " sh
 	}
 }

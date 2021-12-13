@@ -15,7 +15,7 @@ class Window
 	; コンストラクタ
 	__New(id, title, x, y, w, h)
 	{
-		OutputDebug, % "  --> Make Window"
+		;OutputDebug, % "  --> Make Window"
 		this.id := id
 		this.title := title
 		this.x := x
@@ -63,7 +63,7 @@ class Window
     	wBottom  :=NumGet(WinRECT,12,"Int")
 		wWidth := wRight - wLeft
 		wHeight := wBottom - wTop
-		OutputDebug, % "    Window pos         : " wLeft " , " wTop  " , " wRight " , " wBottom " : " wWidth " x " wHeight
+		;OutputDebug, % "    Window pos         : " wLeft " , " wTop  " , " wRight " , " wBottom " : " wWidth " x " wHeight
 		
 		; ウィンドウのクライアント領域を取得
  		Static ClientRECT
@@ -76,7 +76,7 @@ class Window
     	cBottom  :=NumGet(ClientRECT,12,"Int")
 		cWidth := cRight - cLeft
 		cHeight := cBottom - cTop
-		OutputDebug, % "    Window Client size : " cLeft " , " cTop  " , " cRight " , " cBottom " : " cWidth " x " cHeight
+		;OutputDebug, % "    Window Client size : " cLeft " , " cTop  " , " cRight " , " cBottom " : " cWidth " x " cHeight
 
 		; DWMウィンドウのクライアント領域を取得
  		Static DWMRECT
@@ -89,12 +89,12 @@ class Window
     	dBottom  :=NumGet(DWMRECT,12,"Int")
 		dWidth := dRight - dLeft
 		dHeight := dBottom - dTop
-		OutputDebug, % "    Window Client DWM  : " dLeft " , " dTop  " , " dRight " , " dBottom " : " dWidth " x " dHeight
+		;OutputDebug, % "    Window Client DWM  : " dLeft " , " dTop  " , " dRight " , " dBottom " : " dWidth " x " dHeight
 
 		; 領域の差 = ボーダーを計算する
 		offsetw := wWidth - dWidth
 		offseth := wHeight - dHeight
-		OutputDebug % "    Window border : " offsetw " x " offseth
+		;OutputDebug % "    Window border : " offsetw " x " offseth
 
 		return [offsetw, offseth]
 	}
@@ -273,7 +273,7 @@ class Window
 		W := W = "" ? this.w : W
 		H := H = "" ? this.h : H
 		
-		OutputDebug, % "  Move to = " X ", " Y ", " W ", " H
+		;OutputDebug, % "  Move to = " X ", " Y ", " W ", " H
 
 		VarSetCapacity(WP, 44, 0), NumPut(44, WP, "UInt")
 		DllCall("User32.dll\GetWindowPlacement", "Ptr", hwnd, "Ptr", &WP)

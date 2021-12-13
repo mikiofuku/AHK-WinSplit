@@ -86,7 +86,7 @@ class WinSplit
 			return false
 
 		aw := new Window(id, title, ax, ay, aw, ah)
-		aw.Debug()
+		;aw.Debug()
 
 		return aw
 	}
@@ -181,8 +181,8 @@ class WinSplit
 			this.wc.getwindows()
 			rw := this.wc.GetNextWindow(aw, true)
 
-			OutputDebug, % "   Reference window --> "
-			rw.Debug()	
+			OutputDebug, % "   Reference window --> " rw.title
+			;rw.Debug()	
 
 			; リファレンスウィンドウがなければ、終了する			
 			;   →移動しない場合は、次のシーケンスを実行する
