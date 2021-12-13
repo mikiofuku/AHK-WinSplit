@@ -3,7 +3,14 @@ SendMode Input
 SetWorkingDir, %A_ScriptDir%
 SetTitleMatchMode,2
 
-#include AHK-WinSplit.ahk
+#include %A_ScriptDir%\code\Action.ahk
+#include %A_ScriptDir%\code\Sequence.ahk
+#include %A_ScriptDir%\code\Monitor.ahk
+#include %A_ScriptDir%\code\Monitors.ahk
+#include %A_ScriptDir%\code\Window.ahk
+#include %A_ScriptDir%\code\WinCollection.ahk
+#include %A_ScriptDir%\code\INI.ahk
+#include %A_ScriptDir%\code\WinSplit.ahk
 
 ms := new Monitors()
 wc := new WinCollection(ms)
